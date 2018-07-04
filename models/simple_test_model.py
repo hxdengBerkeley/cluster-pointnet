@@ -31,7 +31,7 @@ def get_model(point_cloud, is_training, bn_decay=None):
                          padding='VALID', stride=[1, 1],
                          bn=True, is_training=is_training,
                          scope='conv1', bn_decay=bn_decay)
-    '''
+
     net = tf_util.conv2d(net, 64, [1, 1],
                          padding='VALID', stride=[1, 1],
                          bn=True, is_training=is_training,
@@ -41,21 +41,42 @@ def get_model(point_cloud, is_training, bn_decay=None):
                          padding='VALID', stride=[1, 1],
                          bn=True, is_training=is_training,
                          scope='conv3', bn_decay=bn_decay)
-    '''
 
+    # Slice pooling
+    # net - shape=(32, 50, 1, 64)
+    slice_number = 50
+    slice_axis = 1
+    net = tf_util.slice_max_pool2d(net, input_image, slice_axis, slice_number, scope='slice_maxpool')
+
+    print(net)
+
+    # RNN Replacement
+    net = tf_util.conv2d(net, 64, [1, 1],
+                         padding='VALID', stride=[1, 1],
+                         bn=True, is_training=is_training,
+                         scope='conv4', bn_decay=bn_decay)
+
+    net = tf_util.conv2d(net, 64, [1, 1],
+                         padding='VALID', stride=[1, 1],
+                         bn=True, is_training=is_training,
+                         scope='conv5', bn_decay=bn_decay)
 
     # Symmetric function: max pooling
-    #net = tf_util.max_pool2d(net, [num_point, 1],
-    #                         padding='VALID', scope='maxpool')
-    # net - shape=(32, 1, 1, 64)
-    net = tf_util.slice_max_pool2d(net, input_image, 1, 50, scope='slice_maxpool')
+    # net - shape = (32, 1, 1, 512)
+    net = tf_util.max_pool2d(net, [slice_number, 1],
+                             padding='VALID', scope='maxpool')
+    print(net)
 
     # MLP on global point cloud vector
     net = tf.reshape(net, [batch_size, -1])
-
-#    net = tf_util.fully_connected(net, 512, bn=True, is_training=is_training,
-#                                  scope='fc1', bn_decay=bn_decay)
-
+    net = tf_util.fully_connected(net, 512, bn=True, is_training=is_training,
+                                  scope='fc1', bn_decay=bn_decay)
+    net = tf_util.dropout(net, keep_prob=0.7, is_training=is_training,
+                          scope='dp1')
+    net = tf_util.fully_connected(net, 256, bn=True, is_training=is_training,
+                                  scope='fc2', bn_decay=bn_decay)
+    net = tf_util.dropout(net, keep_prob=0.7, is_training=is_training,
+                          scope='dp2')
     net = tf_util.fully_connected(net, 40, activation_fn=None, scope='fc3')
 
     return net, end_points

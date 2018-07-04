@@ -581,7 +581,6 @@ def slice_max_pool2d(pfs,
                slice_number,
                scope):
     """ 2D slice max pooling.
-
     Args:
       pfs: 4-D tensor BxHxWxC, B is the Batch size, H is the Number of Points
                                W is 1, C is the feature channel number
@@ -591,14 +590,14 @@ def slice_max_pool2d(pfs,
       slice_number: Integer, how many slices is the axis divided
 
     Returns:
-      Variable tensor
+      Variable tensor B x Slice_number x 1 x C
     """
     with tf.variable_scope(scope) as sc:
         batch_size = pfs.get_shape()[0].value
         point_number = pfs.get_shape()[1].value
         feature_number = pfs.get_shape()[3].value
-
         outputs_ = tf.zeros([1, slice_number, 1, feature_number])
+
         for obj_index in range(batch_size):
             # obj_pcs - shape=(1024, 3, 1)
             obj_pfs = pfs[obj_index]
@@ -607,6 +606,7 @@ def slice_max_pool2d(pfs,
             max_axis = tf.reduce_max(obj_pcs[:, slice_axis, 0], axis=0)
             slice_unit = tf.divide(tf.subtract(max_axis, min_axis),slice_number)
             obj_pfs_ = tf.zeros([1, 1, feature_number])
+
             for slice_index in range(slice_number):
                 slice_min = tf.add(min_axis, tf.multiply(slice_unit, slice_index))
                 slice_max = tf.add(slice_min, slice_unit)
