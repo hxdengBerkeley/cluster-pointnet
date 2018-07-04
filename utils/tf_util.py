@@ -604,7 +604,7 @@ def slice_max_pool2d(pfs,
             obj_pcs = pcs[obj_index]
             min_axis = tf.reduce_min(obj_pcs[:, slice_axis, 0], axis=0)
             max_axis = tf.reduce_max(obj_pcs[:, slice_axis, 0], axis=0)
-            slice_unit = tf.divide(tf.subtract(max_axis, min_axis),slice_number)
+            slice_unit = tf.divide(tf.subtract(max_axis, min_axis), slice_number)
             obj_pfs_ = tf.zeros([1, 1, feature_number])
 
             for slice_index in range(slice_number):

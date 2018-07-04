@@ -44,28 +44,28 @@ def get_model(point_cloud, is_training, bn_decay=None):
 
     # Slice pooling
     # net - shape=(32, 50, 1, 64)
-    slice_number = 50
+    slice_number = 5
     slice_axis = 1
     net = tf_util.slice_max_pool2d(net, input_image, slice_axis, slice_number, scope='slice_maxpool')
 
-    print(net)
-
     # RNN Replacement
+
     net = tf_util.conv2d(net, 64, [1, 1],
                          padding='VALID', stride=[1, 1],
                          bn=True, is_training=is_training,
                          scope='conv4', bn_decay=bn_decay)
 
+
+    '''
     net = tf_util.conv2d(net, 64, [1, 1],
                          padding='VALID', stride=[1, 1],
                          bn=True, is_training=is_training,
                          scope='conv5', bn_decay=bn_decay)
-
+    '''
     # Symmetric function: max pooling
     # net - shape = (32, 1, 1, 512)
     net = tf_util.max_pool2d(net, [slice_number, 1],
                              padding='VALID', scope='maxpool')
-    print(net)
 
     # MLP on global point cloud vector
     net = tf.reshape(net, [batch_size, -1])
