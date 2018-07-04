@@ -1,0 +1,22 @@
+Namespace(batch_size=32, decay_rate=0.7, decay_step=200000, gpu=0, learning_rate=0.001, log_dir='log', max_epoch=250, model='simple_test_model', momentum=0.9, num_point=1024, optimizer='adam')
+**** EPOCH 000 ****
+----0-----
+mean loss: nan
+accuracy: 0.064941
+----1-----
+mean loss: nan
+accuracy: 0.060547
+----2-----
+mean loss: nan
+accuracy: 0.067383
+----3-----
+mean loss: nan
+accuracy: 0.058105
+----4-----
+mean loss: nan
+accuracy: 0.068015
+----0-----
+----1-----
+eval mean loss: nan
+eval accuracy: 0.040584
+eval avg class acc: 0.025000
