@@ -190,17 +190,17 @@ def train_one_epoch(sess, ops, train_writer):
 
         # file_size: how many object total - 2048
         file_size = current_data.shape[0]
-        # batch size is 32, and number of batches is 64, 2048/32 = 64
+        # batch size is 32, and number of batches is 64, 2048//32 = 64
+        # batch size is 32, and number of batches is 51, 1648//32 = 51
         num_batches = file_size // BATCH_SIZE
 
         total_correct = 0
         total_seen = 0
         loss_sum = 0
-       
+
         for batch_idx in range(num_batches):
             start_idx = batch_idx * BATCH_SIZE
             end_idx = (batch_idx+1) * BATCH_SIZE
-            
             # Augment batched point clouds by rotation and jittering
             # rotated_jittered_data - shape=(32, 1024, 3)
             rotated_data = provider.rotate_point_cloud(current_data[start_idx:end_idx, :, :])
@@ -221,7 +221,7 @@ def train_one_epoch(sess, ops, train_writer):
             total_correct += correct
             total_seen += BATCH_SIZE
             loss_sum += loss_val
-        
+
         log_string('mean loss: %f' % (loss_sum / float(num_batches)))
         log_string('accuracy: %f' % (total_correct / float(total_seen)))
 
@@ -266,7 +266,6 @@ def eval_one_epoch(sess, ops, test_writer):
     log_string('eval mean loss: %f' % (loss_sum / float(total_seen)))
     log_string('eval accuracy: %f'% (total_correct / float(total_seen)))
     log_string('eval avg class acc: %f' % (np.mean(np.array(total_correct_class)/np.array(total_seen_class,dtype=np.float))))
-         
 
 
 if __name__ == "__main__":

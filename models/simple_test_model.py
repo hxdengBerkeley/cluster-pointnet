@@ -43,18 +43,26 @@ def get_model(point_cloud, is_training, bn_decay=None):
                          scope='conv3', bn_decay=bn_decay)
 
     # Slice pooling
-    # net - shape=(32, 50, 1, 64)
-    slice_number = 5
+    # net - shape=(32, 16, 1, 192)
+    slice_number = 50
     slice_axis = 1
-    net = tf_util.slice_max_pool2d(net, input_image, slice_axis, slice_number, scope='slice_maxpool')
+    #net_x = tf_util.slice_max_pool2d(net, input_image, slice_axis=0, slice_number=slice_number, scope='slice_maxpool')
+    net_y = tf_util.slice_max_pool2d(net, input_image, slice_axis=1, slice_number=slice_number, scope='slice_maxpool')
+    #net_z = tf_util.slice_max_pool2d(net, input_image, slice_axis=2, slice_number=slice_number, scope='slice_maxpool')
+    #net = tf.concat([net_x, net_y, net_z], axis=3)
 
     # RNN Replacement
-
-    net = tf_util.conv2d(net, 64, [1, 1],
+    # net - shape=(32, 7, 1, 128)
+    net = tf_util.conv2d(net_y, 128, [1, 1],
                          padding='VALID', stride=[1, 1],
                          bn=True, is_training=is_training,
                          scope='conv4', bn_decay=bn_decay)
 
+    # net - shape=(32, 3, 1, 64)
+    net = tf_util.conv2d(net, 64, [1, 1],
+                         padding='VALID', stride=[1, 1],
+                         bn=True, is_training=is_training,
+                         scope='conv5', bn_decay=bn_decay)
 
     '''
     net = tf_util.conv2d(net, 64, [1, 1],
@@ -63,7 +71,7 @@ def get_model(point_cloud, is_training, bn_decay=None):
                          scope='conv5', bn_decay=bn_decay)
     '''
     # Symmetric function: max pooling
-    # net - shape = (32, 1, 1, 512)
+    # net - shape = (32, 1, 1, 64)
     net = tf_util.max_pool2d(net, [slice_number, 1],
                              padding='VALID', scope='maxpool')
 
@@ -78,7 +86,6 @@ def get_model(point_cloud, is_training, bn_decay=None):
     net = tf_util.dropout(net, keep_prob=0.7, is_training=is_training,
                           scope='dp2')
     net = tf_util.fully_connected(net, 40, activation_fn=None, scope='fc3')
-
     return net, end_points
 
 

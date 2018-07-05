@@ -614,11 +614,9 @@ def slice_max_pool2d(pfs,
                 mask2 = tf.less_equal(obj_pcs[:, slice_axis, 0], slice_max)
                 mask = tf.logical_and(mask1, mask2)
                 slice_pfs = tf.boolean_mask(obj_pfs, mask)
-                if slice_pfs.get_shape()[0].value == 0:
-                    slice_maxpool = tf.zeros([1, 1, feature_number])
-                else:
-                    slice_maxpool = tf.reduce_max(slice_pfs, axis=0)
-                    slice_maxpool = tf.reshape(slice_maxpool, [1, 1, -1])
+                slice_maxpool = tf.cond(tf.equal(tf.size(slice_pfs), 0),
+                                        lambda: tf.zeros([1, 1, feature_number]),
+                                        lambda: tf.reshape(tf.reduce_max(slice_pfs, axis=0), [1, 1, -1]))
                 obj_pfs_ = tf.concat([obj_pfs_, slice_maxpool], axis=0)
             obj_pfs = tf.reshape(obj_pfs_[1:], [1, slice_number, 1, -1])
             outputs_ = tf.concat([outputs_, obj_pfs], axis=0)
