@@ -43,26 +43,37 @@ def get_model(point_cloud, is_training, bn_decay=None):
                          scope='conv3', bn_decay=bn_decay)
 
     # Slice pooling
-    # net - shape=(32, 16, 1, 192)
+    # net - shape=(32, 50, 1, 64)
     slice_number = 50
     slice_axis = 1
-    #net_x = tf_util.slice_max_pool2d(net, input_image, slice_axis=0, slice_number=slice_number, scope='slice_maxpool')
-    net_y = tf_util.slice_max_pool2d(net, input_image, slice_axis=1, slice_number=slice_number, scope='slice_maxpool')
-    #net_z = tf_util.slice_max_pool2d(net, input_image, slice_axis=2, slice_number=slice_number, scope='slice_maxpool')
-    #net = tf.concat([net_x, net_y, net_z], axis=3)
+    net = tf_util.slice_max_pool2d(net, input_image, slice_axis=slice_axis, slice_number=slice_number, scope='slice_maxpool')
 
     # RNN Replacement
-    # net - shape=(32, 7, 1, 128)
-    net = tf_util.conv2d(net_y, 128, [1, 1],
+    # net - shape=(32, 50, 1, 512)
+    net = tf_util.conv2d(net, 64, [1, 1],
                          padding='VALID', stride=[1, 1],
                          bn=True, is_training=is_training,
                          scope='conv4', bn_decay=bn_decay)
-
-    # net - shape=(32, 3, 1, 64)
     net = tf_util.conv2d(net, 64, [1, 1],
                          padding='VALID', stride=[1, 1],
                          bn=True, is_training=is_training,
                          scope='conv5', bn_decay=bn_decay)
+    net = tf_util.conv2d(net, 128, [1, 1],
+                         padding='VALID', stride=[1, 1],
+                         bn=True, is_training=is_training,
+                         scope='conv6', bn_decay=bn_decay)
+    net = tf_util.conv2d(net, 128, [1, 1],
+                         padding='VALID', stride=[1, 1],
+                         bn=True, is_training=is_training,
+                         scope='conv7', bn_decay=bn_decay)
+    net = tf_util.conv2d(net, 256, [1, 1],
+                         padding='VALID', stride=[1, 1],
+                         bn=True, is_training=is_training,
+                         scope='conv8', bn_decay=bn_decay)
+    net = tf_util.conv2d(net, 512, [1, 1],
+                         padding='VALID', stride=[1, 1],
+                         bn=True, is_training=is_training,
+                         scope='conv8', bn_decay=bn_decay)
 
     '''
     net = tf_util.conv2d(net, 64, [1, 1],
@@ -71,7 +82,7 @@ def get_model(point_cloud, is_training, bn_decay=None):
                          scope='conv5', bn_decay=bn_decay)
     '''
     # Symmetric function: max pooling
-    # net - shape = (32, 1, 1, 64)
+    # net - shape = (32, 1, 1, 512)
     net = tf_util.max_pool2d(net, [slice_number, 1],
                              padding='VALID', scope='maxpool')
 
