@@ -55,7 +55,7 @@ def get_model(point_cloud, is_training, bn_decay=None):
     # grid pooling
     # net - shape=(32, 32, 32, 1024)
     grid_axis = [0, 2]
-    grid_number = [32, 32]
+    grid_number = [10, 10]
     net = tf_util.grid_max_pool2d(net, input_image, grid_axis=grid_axis, grid_number=grid_number, scope='grid_maxpool')
 
     # 2D CNN network
