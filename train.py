@@ -17,7 +17,7 @@ import tf_util
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--gpu', type=int, default=0, help='GPU to use [default: GPU 0]')
-parser.add_argument('--model', default='simple_test_model', help='Model name: pointnet_cls or pointnet_cls_basic [default: pointnet_cls]')
+parser.add_argument('--model', default='grid_pointnet_model', help='Model name: pointnet_cls or pointnet_cls_basic [default: pointnet_cls]')
 parser.add_argument('--log_dir', default='log', help='Log dir [default: log]')
 parser.add_argument('--num_point', type=int, default=1024, help='Point Number [256/512/1024/2048] [default: 1024]')
 parser.add_argument('--max_epoch', type=int, default=250, help='Epoch to run [default: 250]')
@@ -46,7 +46,7 @@ LOG_DIR = FLAGS.log_dir
 if not os.path.exists(LOG_DIR): os.mkdir(LOG_DIR)
 os.system('cp %s %s' % (MODEL_FILE, LOG_DIR)) # bkp of model def
 os.system('cp train.py %s' % (LOG_DIR)) # bkp of train procedure
-LOG_FOUT = open(os.path.join(LOG_DIR, 'log_train.txt'), 'w')
+LOG_FOUT = open(os.path.join(LOG_DIR, 'log_train_vallina_pointnet.txt'), 'w')
 LOG_FOUT.write(str(FLAGS)+'\n')
 
 MAX_NUM_POINT = 2048  #not used

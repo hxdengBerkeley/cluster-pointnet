@@ -622,3 +622,86 @@ def slice_max_pool2d(pfs,
             outputs_ = tf.concat([outputs_, obj_pfs], axis=0)
         outputs = outputs_[1:]
         return outputs
+
+def grid_max_pool2d(pfs,
+               pcs,
+               grid_axis,
+               grid_number,
+               scope):
+    """ 2D grid max pooling.
+    Args:
+      pfs: 4-D tensor BxHxWxC, B is the Batch size, H is the Number of Points
+                               W is 1, C is the feature channel number
+      pcs: 4-D tensor BxHxWxC, B is the Batch size, H is the Number of Points (according to the pfs),
+                               W is 3 - (x, y, z), C is 1
+      grid_axis:   [Integer, Integer], which two axises are divided
+      grid_number: [Integer, Integer], how many slices is the axis divided
+
+    Returns:
+      Variable tensor B x Slice_number x 1 x C
+    """
+    with tf.variable_scope(scope) as sc:
+        batch_size = pfs.get_shape()[0].value
+        point_number = pfs.get_shape()[1].value
+        feature_number = pfs.get_shape()[3].value
+
+        axis1 = grid_axis[0]
+        axis2 = grid_axis[1]
+
+        axis1_slice_number = grid_number[0]
+        axis2_slice_number = grid_number[1]
+
+        # [1, 1, 1, 1024]
+        outputs_ = tf.zeros([1, axis1_slice_number, axis2_slice_number, feature_number])
+
+        for obj_index in range(batch_size):
+            obj_pfs = pfs[obj_index]
+            obj_pcs = pcs[obj_index]
+
+            min_axis1 = tf.reduce_min(obj_pcs[:, axis1, 0], axis=0)
+            max_axis1 = tf.reduce_max(obj_pcs[:, axis1, 0], axis=0)
+
+            min_axis2 = tf.reduce_min(obj_pcs[:, axis2, 0], axis=0)
+            max_axis2 = tf.reduce_max(obj_pcs[:, axis2, 0], axis=0)
+
+            axis1_slice_unit = tf.divide(tf.subtract(max_axis1, min_axis1), axis1_slice_number)
+            axis2_slice_unit = tf.divide(tf.subtract(max_axis2, min_axis2), axis2_slice_number)
+
+            # obj_pfs_ = [1, 32, 64]
+            obj_pfs_ = tf.zeros([1, axis2_slice_number, feature_number])
+
+            for axis1_index in range(axis1_slice_number):
+                grid_axis1_min = tf.add(min_axis1, tf.multiply(axis1_slice_unit, axis1_index))
+                grid_axis1_max = tf.add(grid_axis1_min, axis1_slice_unit)
+
+                grid_axis1_mask1 = tf.greater_equal(obj_pcs[:, axis1, 0], grid_axis1_min)
+                grid_axis1_mask2 = tf.less_equal(obj_pcs[:, axis1, 0], grid_axis1_max)
+                grid_axis1_mask = tf.logical_and(grid_axis1_mask1, grid_axis1_mask2)
+
+                axis1_pfs_ = tf.zeros([1, 1, feature_number])
+
+                for axis2_index in range(axis2_slice_number):
+                    grid_axis2_min = tf.add(min_axis2, tf.multiply(axis2_slice_unit, axis2_index))
+                    grid_axis2_max = tf.add(grid_axis2_min, axis2_slice_unit)
+
+                    grid_axis2_mask1 = tf.greater_equal(obj_pcs[:, axis2, 0], grid_axis2_min)
+                    grid_axis2_mask2 = tf.less_equal(obj_pcs[:, axis2, 0], grid_axis2_max)
+                    grid_axis2_mask = tf.logical_and(grid_axis2_mask1, grid_axis2_mask2)
+
+                    grid_mask = tf.logical_and(grid_axis1_mask, grid_axis2_mask)
+                    # grid_pfs = (?, 1, 1024)
+                    grid_pfs = tf.boolean_mask(obj_pfs, grid_mask)
+
+                    grid_maxpool = tf.cond(tf.equal(tf.size(grid_pfs), 0),
+                                        lambda: tf.zeros([1, 1, feature_number]),
+                                        lambda: tf.reshape(tf.reduce_max(grid_pfs, axis=0), [1, 1, -1]))
+                    print(grid_maxpool)
+                    axis1_pfs_ = tf.concat([axis1_pfs_, grid_maxpool], axis=1)
+
+                obj_pfs_ = tf.concat([obj_pfs_, axis1_pfs_[:,1:]], axis=0)
+
+            # obj_pfs = [32, 32, 64]
+            obj_pfs = tf.reshape(obj_pfs_[1:], [1, axis1_slice_number, axis2_slice_number, -1])
+            outputs_ = tf.concat([outputs_, obj_pfs], axis=0)
+        outputs = outputs_[1:]
+        return outputs
