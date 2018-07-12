@@ -689,13 +689,13 @@ def grid_max_pool2d(pfs,
                     grid_axis2_mask = tf.logical_and(grid_axis2_mask1, grid_axis2_mask2)
 
                     grid_mask = tf.logical_and(grid_axis1_mask, grid_axis2_mask)
-                    # grid_pfs = (?, 1, 1024)
+
                     grid_pfs = tf.boolean_mask(obj_pfs, grid_mask)
 
                     grid_maxpool = tf.cond(tf.equal(tf.size(grid_pfs), 0),
                                         lambda: tf.zeros([1, 1, feature_number]),
                                         lambda: tf.reshape(tf.reduce_max(grid_pfs, axis=0), [1, 1, -1]))
-                    print(grid_maxpool)
+
                     axis1_pfs_ = tf.concat([axis1_pfs_, grid_maxpool], axis=1)
 
                 obj_pfs_ = tf.concat([obj_pfs_, axis1_pfs_[:,1:]], axis=0)
